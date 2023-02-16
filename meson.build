@@ -14,7 +14,7 @@ generated_headers += rust.bindgen(
     output : csp_rs,
 	dependencies: [csp_dep]
 )
-build_command += ['cp', meson.project_build_root() / csp_rs, meson.project_source_root() / 'src' / csp_rs, '&&']
+build_command += ['cp', meson.project_build_root() / csp_rs, meson.project_source_root() / 'src' / 'sys' / csp_rs, '&&']
 
 
 slash_dep = dependency('slash', fallback : ['slash', 'slash_dep'], required: true)
@@ -25,7 +25,7 @@ generated_headers += rust.bindgen(
 	output : slash_rs,
 	dependencies: [slash_dep]
 )
-build_command += ['cp', meson.project_build_root() / slash_rs, meson.project_source_root() / 'src' / slash_rs, '&&']
+build_command += ['cp', meson.project_build_root() / slash_rs, meson.project_source_root() / 'src' / 'sys' / slash_rs, '&&']
 
 # Setup cargo
 cargo = find_program('cargo', required: true)
