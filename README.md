@@ -1,6 +1,6 @@
 Run rust as part of the meson build system
-This repo is an example of two way referencing.
-It references `csp` using bindgen and is referenced by `csh` using static linking
+This repo is an example of ways to interact with csp, csh and slash using the meson build sysstem.
+`csp` is accessed using bindgen and `csh` uses a combination of static linking and slash interfaces.
 
 # Compilation
 Rust is compiled using a CustomTarget. Meson does provide their own way of doing it. However that circumvents Cargo.toml and requires for all source files to be added manually.
@@ -59,10 +59,31 @@ crate-type = ["staticlib"]
 ```
 The compilation is done using a CustomTarget. 
 
-The CustomTarget allows us to run `cargo build` just like it is done in the commandline. Meson does come with their own wrapper around cargo. However does not use `Cargo.toml` and requires manual tracking of files. Which seem highly uncessecary.
-
-> We can pass arguments to `cargo build` by setting up option in meson for inspiration on how this is done look at profile in `meson_options.txt`
+The CustomTarget allows us to run `cargo build` just like it is done in the commandline. Meson does come with their own wrapper around cargo. However this does not use `Cargo.toml` and requires manual tracking of files. Which seem highly uncessecary.
 
 Once it compilation is done, the library file is copied into mesons build directory.
 
-Then to tell meson that the library exist we create the dependency declaration. The way this works is a bit of a hack since it seems like no one is really sure how it is suppose to work. The solution used is based on [this comment](https://github.com/mesonbuild/meson/issues/3613#issuecomment-408276296) in the issue tracking the problem.
+Then to tell meson that the library exist we create the dependency declaration. The way this is created is a bit of a hack, since it seems like no one is really sure how it is suppose to work. The solution used is based on [this comment](https://github.com/mesonbuild/meson/issues/3613#issuecomment-408276296) in the issue tracking the problem.
+
+csh can now use the dependency declaration to get both the library and any included header files.
+
+# Creating slash command
+Using `register_slash_command` commands can be registered to be accessed using slash
+
+## How it works
+Slash stores all its commands in the `slash` ELF section. The commands are stored as static variables with pointers to all the relevant information. 
+
+To create the variables in rust we use `#[link_section = "slash"]` and `#[used]` to get it there. This ensures that they are put in the correct ELF section and are not optimized away even if they are not referenced.
+
+However this is not enought. If the file that the declaration is located in does not contain something else that is used by csh, then the entire thing is not loaded. 
+
+So to force this we can create a static variable rust and then reference it in our header file. This means that when the header file is used so is the static variable and all the slash references.
+
+# Rust tests
+Test can be made using rusts default test harness.
+The tests can then be run using `ninja test`
+
+## How it works
+`Cargo test` set as a test in meson. Everytime the test is run, the test binary is build and run. 
+
+The test results are displayed using mesons preexisting methods. This is done by setting the protocol argument to `rust` which from the docs are not entirely clear that it is an option.

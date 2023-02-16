@@ -2,6 +2,8 @@ mod sys;
 mod slash_example;
 mod c_examples;
 mod csp_examples;
+#[cfg(test)]
+pub mod test_examples;
 
 pub use sys::*;
 pub use slash_example::*;

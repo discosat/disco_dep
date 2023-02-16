@@ -16,7 +16,7 @@ generated_headers += rust.bindgen(
 )
 build_command += ['cp', meson.project_build_root() / csp_rs, meson.project_source_root() / 'src' / 'sys' / csp_rs, '&&']
 
-
+# Generate rust binding around slash header files
 slash_dep = dependency('slash', fallback : ['slash', 'slash_dep'], required: true)
 slash_rs = 'slash_sys.rs'
 
@@ -31,8 +31,7 @@ build_command += ['cp', meson.project_build_root() / slash_rs, meson.project_sou
 cargo = find_program('cargo', required: true)
 cargo_options += [ '--manifest-path', meson.project_source_root() / 'Cargo.toml' ]
 
-
-if get_option('profile') == 'release'
+if get_option('buildtype') == 'release'
 	cargo_options += [ '--release' ]
 	rust_target = 'release'
 	message('Building in release mode')
@@ -41,18 +40,19 @@ else
 	message('Building in debug mode')
 endif
 
+target_dir = meson.project_source_root() / 'target' / rust_target
 build_command += [
 	# Force lib to be build again
-	'rm', '-f', meson.project_source_root() / 'target' / rust_target / 'lib' + meson.project_name() + '.a', '&&',
+	'rm', '-f', target_dir / 'lib' + meson.project_name() + '.a', '&&',
 	# Run cargo build
 	cargo, 'build', cargo_options, '&&',
 	# Copy lib to output folder
-	'cp', meson.project_source_root() / 'target' / rust_target / 'lib' + meson.project_name() + '.a', '@OUTPUT@'
+	'cp', target_dir / 'lib' + meson.project_name() + '.a', '@OUTPUT@'
 ]
 
 # Run build command
 csp_to_csh_example_lib = custom_target(
-	'csp_to_csh_example',
+	'cargo-build',
 	# Force the bindgen to run
 	input: generated_headers,
 	build_by_default: true,
@@ -64,12 +64,21 @@ csp_to_csh_example_lib = custom_target(
 	command: build_command
 )
 
-
 csp_to_csh_example_inc = include_directories('include')
 
 # Setup link to static library
 csp_to_csh_example_dep = declare_dependency(
 	sources: [csp_to_csh_example_lib[0]],
 	include_directories: csp_to_csh_example_inc,
-	link_args: ['-lcsp_to_csh_example', '-Llib/csp_to_csh_example'],
+	link_args: ['-lcsp_to_csh_example', '-Llib/csp_to_csh_example']
+)
+
+# Build test bed
+test(
+	'csp_to_csh_example_test', 
+	cargo, 
+	args: ['test', '--color=always', cargo_options, '--', '--nocapture'],
+	verbose: true,
+	timeout: 99999,
+	protocol: 'rust'
 )
