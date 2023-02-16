@@ -2,11 +2,32 @@
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(unused)]
-mod csp;
-use csp::csp_conn_print_table;
+mod slash_sys;
+
+#[allow(non_upper_case_globals)]
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+#[allow(unused)]
+mod csp_sys;
+
+use csp_sys::csp_conn_print_table;
 use std::ffi::{c_void, CStr};
 use std::os::raw::c_char;
 use std::slice;
+
+mod slash;
+pub use slash::*;
+/*
+__attribute__((section("slash")))
+	__attribute__((aligned(4)))
+	__attribute__((used))
+	const struct slash_command _ident = {
+		.name  = _name,
+		.func  = _func,
+		.completer  = _completer,
+		.args  = _args,
+	};
+ */
 
 // A Rust struct mapping the C struct
 #[repr(C)]

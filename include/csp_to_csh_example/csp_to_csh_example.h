@@ -16,4 +16,7 @@ extern void rust_int_array(const int *array, int length);
 extern void rust_string_array(const char **array, int length);
 extern void rust_cstruct(struct CStruct *c_struct);
 
+extern const uint32_t RUST_SLASH_LOAD;
+static const uint32_t *const RUST_SLASH_LOAD_LOCK __attribute__((__used__)) = &RUST_SLASH_LOAD;
+
 #endif /* RUST_HEADER */
