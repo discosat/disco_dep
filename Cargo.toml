@@ -1,0 +1,8 @@
+[package]
+name = "csp_to_csh_example"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "csp_to_csh_example"
+crate-type = ["staticlib"]
