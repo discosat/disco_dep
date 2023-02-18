@@ -6,3 +6,6 @@ edition = "2021"
 [lib]
 name = "csp_to_csh_example"
 crate-type = ["staticlib"]
+
+[dependencies]
+paste = "1.0.11"

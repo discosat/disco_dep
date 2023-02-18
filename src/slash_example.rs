@@ -1,4 +1,7 @@
 use crate::register_slash_command;
+use crate::slash_sys::*;
+use std::os::raw::c_int;
+use crate::slash::*;
 
 /// Force everything here to be loaded by linker
 /// This works because it is being used in the header file
@@ -6,6 +9,10 @@ use crate::register_slash_command;
 #[no_mangle]
 pub static RUST_SLASH_LOAD: u32 = 0;
 
-register_slash_command!{helloa, "Helloa", None, None, ""}
-register_slash_command!{hellob, "Hellob", None, None, ""}
-register_slash_command!{helloc, "Helloc", None, None, ""}
+
+fn hello_rust(slash: &slash) -> SlashExitCode {
+    println!("Hello user glad to talk to you!");
+    SlashExitCode::Success
+}
+
+register_slash_command!{hello_rust, "Hello rust there", None, ""}
