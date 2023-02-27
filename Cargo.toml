@@ -1,11 +1,7 @@
-[package]
-name = "csp_to_csh_example"
-version = "0.1.0"
-edition = "2021"
+[workspace]
 
-[lib]
-name = "csp_to_csh_example"
-crate-type = ["staticlib"]
-
-[dependencies]
-paste = "1.0.11"
+members = [
+    "slash_sys",
+    "csp_sys",
+    "rust_example_project"
+]
