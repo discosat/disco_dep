@@ -10,7 +10,7 @@ The CustomTarget uses cargo and therefore any argument that is normally passed t
 # Referencing csp
 all the csp functions are available in the csp module found in the root.
 ```rust
-pub use crate::csp::*;
+pub use crate::csp_sys::*;
 ```
 All the methods are raw ffi bindings so it is a good idea to create safe rust wrappers around them before use.
 ## How it works

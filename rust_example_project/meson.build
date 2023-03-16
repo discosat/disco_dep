@@ -1,8 +1,5 @@
 # project('rust_example_project', 'rust')
 
-#csp_sys_dep = dependency('csp_dep', fallback: ['csp_dep', 'csp_sys_dep'], required: true)
-#slash_sys_dep = dependency('csp_dep', fallback: ['csp_dep', 'slash_sys_dep'], required: true)
-
 cargo_options = ['--manifest-path', meson.project_source_root() / 'rust_example_project' / 'Cargo.toml']
 
 if get_option('buildtype') == 'release'
@@ -43,9 +40,10 @@ rust_example_project_lib = custom_target(
 
 # Setup link to static library
 rust_example_project_dep = declare_dependency(
-	sources: [rust_example_project_lib[0]],
+	#sources: [rust_example_project_lib[0]],
     # Load the entire library, this ensures that slash sections are loaded properly
-    link_args: ['-Wl,--whole-archive', meson.current_build_dir() / rust_example_project_lib_name, '-Wl,--no-whole-archive'],
+	link_whole: [rust_example_project_lib],
+    # link_args: ['-Wl,--whole-archive', meson.current_build_dir() / rust_example_project_lib_name, '-Wl,--no-whole-archive'],
     dependencies: [csp_sys_dep, slash_sys_dep]
 )
 

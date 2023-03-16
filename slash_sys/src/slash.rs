@@ -13,8 +13,13 @@ macro_rules! register_slash_command {
             #[no_mangle]
             pub unsafe extern "C" fn [<extern_$name>] (slash: *mut slash) -> std::os::raw::c_int {
                 if let Some(slash_ref) = slash.as_ref() {
-                    let res: $crate::SlashExitCode = $name(slash_ref);
-                    res.code()
+                    let aa = $name(slash_ref);
+                    let res: Result<_, $crate::SlashExitCode> = aa.map_err::<$crate::SlashExitCode, _>(From::from);
+                    if let Err(code) = res {
+                        code.code()
+                    } else {
+                        $crate::slash_sys::SLASH_SUCCESS as std::os::raw::c_int
+                    }
                 } else {
                     $crate::SlashExitCode::Exit.code()
                 }

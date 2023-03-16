@@ -1,9 +1,10 @@
 use super::slash_sys::*;
 use std::os::raw::c_int;
 
+pub type SlashResult<T> = Result<T, SlashExitCode>;
+
 pub enum SlashExitCode {
     Exit,
-    Success,
     Eusage,
     Einval,
     Enospc,
@@ -16,7 +17,6 @@ impl SlashExitCode {
     pub fn code(&self) -> c_int {
         match self {
             SlashExitCode::Exit => SLASH_EXIT as c_int,
-            SlashExitCode::Success => SLASH_SUCCESS as c_int,
             SlashExitCode::Eusage => SLASH_EUSAGE as c_int,
             SlashExitCode::Einval => SLASH_EINVAL as c_int,
             SlashExitCode::Enospc => SLASH_ENOSPC as c_int,

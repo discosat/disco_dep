@@ -1,3 +1,4 @@
+
 # Generate rust binding around slash header files
 slash_dep = dependency('slash', fallback : ['slash', 'slash_dep'])
 slash_rs = 'slash_sys.rs'
