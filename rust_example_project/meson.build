@@ -29,7 +29,7 @@ rust_example_project_lib = custom_target(
 	'rust_example_project',
 	# Force the bindgen to run
 	input: [],
-	build_by_default: true,
+	build_by_default: false,
 	build_always_stale: true,
 	output: rust_example_project_lib_name,
 	console: true,

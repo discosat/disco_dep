@@ -1,5 +1,7 @@
 use crate::{CSPResult, CSPError, Packet};
-use crate::csp_sys::{csp_conn_t, csp_memcpy_fnc_t, free_sfp, csp_sfp_recv_fp, csp_close, csp_connect, csp_prio_t, csp_conn_dport, csp_conn_sport, csp_read, csp_send, csp_sfp_send_own_memcpy, csp_free_resources};
+use crate::csp_sys::{csp_conn_t, csp_memcpy_fnc_t, csp_sfp_recv_fp, csp_close, csp_connect, csp_prio_t, csp_conn_dport, csp_conn_sport, csp_read, csp_send, csp_sfp_send_own_memcpy, csp_free_resources};
+use crate::malloc_sys::free;
+use crate::Malloced;
 
 pub struct Connection(pub(crate) *mut csp_conn_t);
 use std::mem::size_of;
@@ -34,7 +36,7 @@ impl Connection {
         }
     }
 
-    pub fn read<T>(&mut self, timeout: u32) -> CSPResult<Option<Packet<T>>> 
+    pub fn read<T>(&mut self, timeout: u32) -> CSPResult<Packet<T>> 
     where
         T: Sized + Send + Sync
     {
@@ -42,10 +44,9 @@ impl Connection {
             let packet = csp_read(self.0, timeout);
 
             if packet.is_null() {
-                Ok(None)
+                Err(CSPError::ReadFailed)
             } else {
                 Packet::<T>::from_raw(packet)
-                    .map(Some)
             }
         }
     }
@@ -74,21 +75,18 @@ impl Connection {
         Ok(())
     }
 
-    pub fn read_sfp<T>(&mut self, timeout: u32) -> CSPResult<T>
+    pub fn read_sfp<T>(&mut self, timeout: u32) -> CSPResult<Malloced<T>>
     where
         T: Sized + Send + Sync + Copy
     {
         let mut data = null_mut();
-        let mut data_size: c_int = 0;
+        let mut data_size: c_int = 100;
 
         unsafe {
             let res = csp_sfp_recv(self.0, &mut data, &mut data_size, timeout);
             CSPError::from_int(res)?;
 
-            let owned_data: T = *(data as *mut T);
-
-            free_sfp(data);
-            Ok(owned_data)
+            Ok(Malloced::from_raw(data)?)
         }
     }
 

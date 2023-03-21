@@ -13,7 +13,7 @@ slash_sys_bind = rust.bindgen(
 slash_sys_lib = custom_target(
 	'slash_sys',
 	# Force the bindgen to run
-	input: slash_sys_bind,
+	depends: slash_sys_bind,
 	build_by_default: true,
 	build_always_stale: true,
 	output: 'slash_sys_empty',

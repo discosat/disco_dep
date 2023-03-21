@@ -3361,9 +3361,6 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
-    pub fn free_sfp(c: *mut ::std::os::raw::c_void);
-}
-extern "C" {
     #[doc = "Enable promiscuous packet queue.\n@param[in] queue_size Size (max length) of queue for incoming packets.\n@return #CSP_ERR_NONE on success, otherwise an error code."]
     pub fn csp_promisc_enable(queue_size: ::std::os::raw::c_uint) -> ::std::os::raw::c_int;
 }

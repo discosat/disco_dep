@@ -2,6 +2,7 @@
 # Generate rust binding around csp header files
 csp_dep = dependency('csp', fallback : ['csp', 'csp_dep'])
 csp_rs = 'csp_sys.rs'
+malloc_rs = 'malloc_sys.rs'
 rust = import('unstable-rust')
 
 csp_sys_bind = rust.bindgen(
@@ -10,16 +11,23 @@ csp_sys_bind = rust.bindgen(
 	dependencies: [csp_dep]
 )
 
+malloc_sys_bind = rust.bindgen(
+    input : 'malloc.h',
+    output : malloc_rs,
+	dependencies: [csp_dep]
+)
+
 csp_sys_lib = custom_target(
 	'csp_sys',
 	# Force the bindgen to run
-	input: csp_sys_bind,
+	depends: [csp_sys_bind, malloc_sys_bind],
 	build_by_default: true,
 	build_always_stale: true,
 	output: 'csp_sys_empty',
 	console: true,
 	command: [
-        'cp', meson.current_build_dir() / csp_rs, meson.current_source_dir() / 'src' / csp_rs
+        'cp', meson.current_build_dir() / csp_rs, meson.current_source_dir() / 'src' / csp_rs, '&&',
+		'cp', meson.current_build_dir() / malloc_rs, meson.current_source_dir() / 'src' / malloc_rs
     ]
 )
 

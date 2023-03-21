@@ -2,6 +2,8 @@ use std::ffi::c_void;
 use std::marker::PhantomData;
 use std::mem::{size_of, transmute};
 use std::ops::Deref;
+use std::fmt::Debug;
+use std::fmt;
 use crate::{CSPResult, CSPError};
 
 use crate::csp_sys::{csp_packet_t, csp_buffer_get, CSP_BUFFER_SIZE, csp_buffer_free};
@@ -44,18 +46,25 @@ where
         }
     }
 
-    pub fn from_raw(packet: *mut csp_packet_t) -> CSPResult<Packet<T>> {
+    pub unsafe fn from_raw(packet: *mut csp_packet_t) -> CSPResult<Packet<T>> {
         if packet.is_null() {
             return Err(CSPError::NullPointerCast);
         }
 
-        unsafe {
-            if (*packet).length as usize != size_of::<T>() {
-                return Err(CSPError::FailedPointerCast);
-            }
+        if (*packet).length as usize != size_of::<T>() {
+            return Err(CSPError::FailedPointerCast);
         }
 
         Ok(Packet(packet, PhantomData))
+    }
+}
+
+impl<T> Packet<T> 
+where
+    T: Sized + Sync + Send + Clone
+{
+    pub fn unpack(self) -> T {
+        self.deref().clone()
     }
 }
 
@@ -79,5 +88,16 @@ where
         unsafe {
             transmute(&(*self.0).__bindgen_anon_2.data)
         }
+    }
+}
+
+impl<T> Debug for Packet<T>
+where
+    T: Sized + Sync + Send + Debug
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Packet")
+         .field(self.deref())
+         .finish()
     }
 }

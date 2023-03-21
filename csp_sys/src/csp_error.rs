@@ -12,6 +12,8 @@ pub enum CSPError {
     NullPointerCast,
     #[error("Failed to convert from pointer")]
     FailedPointerCast,
+    #[error("Failed to read from connection either due to timeout or failure in csp_read")]
+    ReadFailed,
 
     #[error("Not enough memory")]
     Nomem,
