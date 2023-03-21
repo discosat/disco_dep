@@ -7,6 +7,3 @@ edition = "2021"
 
 [dependencies]
 thiserror = "1.0.38"
-
-[build-dependencies]
-bindgen = "0.53.1"
