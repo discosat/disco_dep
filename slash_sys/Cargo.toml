@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 paste = "1.0.11"
+thiserror = "1.0.38"

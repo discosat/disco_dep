@@ -1,12 +1,11 @@
-use crate::{CSPResult, CSPError, Packet};
-use crate::csp_sys::{csp_conn_t, csp_memcpy_fnc_t, csp_sfp_recv_fp, csp_close, csp_connect, csp_prio_t, csp_conn_dport, csp_conn_sport, csp_read, csp_send, csp_sfp_send_own_memcpy, csp_free_resources};
-use crate::malloc_sys::free;
+use crate::{CSPResult, CSPError, Packet, MallocedSlice};
+use crate::csp_sys::{csp_conn_t, csp_sfp_recv_fp, csp_close, csp_connect, csp_prio_t, csp_conn_dport, csp_conn_sport, csp_read, csp_send, csp_sfp_send_own_memcpy};
 use crate::Malloced;
 
 pub struct Connection(pub(crate) *mut csp_conn_t);
 use std::mem::size_of;
 use std::os::raw::{c_uint, c_int, c_ulong, c_void};
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 
 #[derive(Clone, Copy)]
 pub enum ConnectionOption {
@@ -38,7 +37,7 @@ impl Connection {
 
     pub fn read<T>(&mut self, timeout: u32) -> CSPResult<Packet<T>> 
     where
-        T: Sized + Send + Sync
+        T: Sized + Send
     {
         unsafe {
             let packet = csp_read(self.0, timeout);
@@ -53,7 +52,7 @@ impl Connection {
 
     pub fn send<T>(&mut self, payload: &T) -> CSPResult<()>
     where
-        T: Sized + Send + Sync
+        T: Sized + Send
     {
         unsafe {
             let packet = Packet::new(payload)?;
@@ -63,12 +62,34 @@ impl Connection {
         Ok(())
     }
 
-    pub fn send_sfp<T>(&mut self, content: &[T], mtu: u32, timout: u32) -> CSPResult<()> 
+    pub fn send_sfp<T>(&mut self, content: &T, mtu: u32, timout: u32) -> CSPResult<()> 
     where
-        T: Sized + Send + Sync
+        T: Sized + Send
     {
         unsafe {
-            let res = csp_sfp_send(self.0, content.as_ptr() as *const c_void, (content.len() * size_of::<T>()) as u32, mtu, timout);
+            let res = csp_sfp_send(
+                self.0, content as *const T as *const c_void, 
+                size_of::<T>() as u32, 
+                mtu, 
+                timout
+            );
+            CSPError::from_int(res)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn send_sfp_slice<T>(&mut self, content: &[T], mtu: u32, timout: u32) -> CSPResult<()> 
+    where
+        T: Sized + Send
+    {
+        unsafe {
+            let res = csp_sfp_send(
+                self.0, content.as_ptr() as *const c_void, 
+                (size_of::<T>() * content.len()) as u32, 
+                mtu, 
+                timout
+            );
             CSPError::from_int(res)?;
         }
 
@@ -77,16 +98,44 @@ impl Connection {
 
     pub fn read_sfp<T>(&mut self, timeout: u32) -> CSPResult<Malloced<T>>
     where
-        T: Sized + Send + Sync + Copy
+        T: Sized + Send
     {
         let mut data = null_mut();
-        let mut data_size: c_int = 100;
+        let mut data_size: c_int = 0;
 
         unsafe {
             let res = csp_sfp_recv(self.0, &mut data, &mut data_size, timeout);
             CSPError::from_int(res)?;
 
-            Ok(Malloced::from_raw(data)?)
+            if (data_size as usize) < size_of::<T>() {
+                Err(CSPError::SFPConvertionError)
+            } else {
+                Ok(Malloced::from_raw(data as *mut T)?)
+            }
+        }
+    }
+
+    pub fn read_sfp_slice<T>(&mut self, timeout: u32) -> CSPResult<MallocedSlice<T>> 
+    where
+        T: Sized + Send
+    {
+        let mut data = null_mut();
+        let mut data_size: c_int = 0;
+
+        unsafe {
+            let res = csp_sfp_recv(self.0, &mut data, &mut data_size, timeout);
+            CSPError::from_int(res)?;
+
+            let value_size = size_of::<T>();
+
+            if data_size as usize % size_of::<T>() != 0 {
+                return Err(CSPError::SFPConvertionError);
+            }
+
+            MallocedSlice::from_raw_parts(
+                data as *mut T, 
+                data_size as usize / value_size
+            )
         }
     }
 

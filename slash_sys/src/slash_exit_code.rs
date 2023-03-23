@@ -1,8 +1,7 @@
 use super::slash_sys::*;
 use std::os::raw::c_int;
 
-pub type SlashResult<T> = Result<T, SlashExitCode>;
-
+#[derive(Debug, Clone, Copy)]
 pub enum SlashExitCode {
     Exit,
     Eusage,
@@ -10,7 +9,8 @@ pub enum SlashExitCode {
     Enospc,
     Eio,
     Enomem,
-    Enoent
+    Enoent,
+    Ignored
 }
 
 impl SlashExitCode {
@@ -23,6 +23,7 @@ impl SlashExitCode {
             SlashExitCode::Eio => SLASH_EIO as c_int,
             SlashExitCode::Enomem => SLASH_ENOMEM as c_int,
             SlashExitCode::Enoent => SLASH_ENOENT as c_int,
+            SlashExitCode::Ignored => SLASH_SUCCESS as c_int,
         }
     }
 }

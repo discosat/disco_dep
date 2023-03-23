@@ -7,6 +7,10 @@ pub mod slash_sys;
 pub use paste;
 mod slash;
 mod slash_exit_code;
+mod arg_parse;
+mod slash_error;
 
+pub use slash_error::*;
+pub use arg_parse::*;
 pub use slash_exit_code::*;
 pub use slash::*;

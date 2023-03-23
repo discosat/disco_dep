@@ -17,11 +17,11 @@ unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
 
 pub struct Packet<T>(pub(crate) *mut csp_packet_t, PhantomData<T>)
 where
-    T: Sized + Sync + Send;
+    T: Sized + Send;
 
 impl<T> Packet<T> 
 where
-    T: Sized + Sync + Send
+    T: Sized + Send
 {
     pub fn new(content: &T) -> CSPResult<Packet<T>> {
         unsafe {
@@ -61,7 +61,7 @@ where
 
 impl<T> Packet<T> 
 where
-    T: Sized + Sync + Send + Clone
+    T: Sized + Send + Clone
 {
     pub fn unpack(self) -> T {
         self.deref().clone()
@@ -70,7 +70,7 @@ where
 
 impl<T> Drop for Packet<T>
 where
-    T: Sized + Sync + Send
+    T: Sized + Send
 {
     fn drop(&mut self) {
         unsafe {
@@ -81,7 +81,7 @@ where
 
 impl<T> Deref for Packet<T>
 where
-    T: Sized + Sync + Send
+    T: Sized + Send
 {
     type Target = T;
     fn deref(&self) -> &Self::Target {
@@ -93,7 +93,7 @@ where
 
 impl<T> Debug for Packet<T>
 where
-    T: Sized + Sync + Send + Debug
+    T: Sized + Send + Debug
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("Packet")

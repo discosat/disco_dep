@@ -6,6 +6,8 @@ pub type CSPResult<T> = Result<T, CSPError>;
 pub enum CSPError {
     #[error("Failed to allocate buffer")]
     FailedToAllocBuffer,
+    #[error("Failed to convert recieved buffer into expected datatype")]
+    SFPConvertionError,
     #[error("Failed to connect")]
     ConnectionFailed,
     #[error("Failed to convert from null pointer")]
