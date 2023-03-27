@@ -1,5 +1,5 @@
 use crate::{CSPResult, CSPError, Packet, MallocedSlice};
-use crate::csp_sys::{csp_conn_t, csp_sfp_recv_fp, csp_close, csp_connect, csp_prio_t, csp_conn_dport, csp_conn_sport, csp_read, csp_send, csp_sfp_send_own_memcpy};
+use crate::csp_sys::{csp_conn_t, csp_sfp_recv_fp, csp_close, csp_connect, csp_prio_t, csp_conn_dport, csp_conn_sport, csp_read, csp_send, csp_sfp_send_own_memcpy, csp_prio_t_CSP_PRIO_CRITICAL, csp_prio_t_CSP_PRIO_HIGH, csp_prio_t_CSP_PRIO_NORM, csp_prio_t_CSP_PRIO_LOW};
 use crate::Malloced;
 
 pub struct Connection(pub(crate) *mut csp_conn_t);
@@ -18,8 +18,17 @@ pub enum ConnectionOption {
     SAME = 0x8000
 }
 
+#[repr(u8)]
+pub enum ConnectionPriority {
+    Critical = csp_prio_t_CSP_PRIO_CRITICAL as u8,
+    High = csp_prio_t_CSP_PRIO_HIGH as u8,
+    Norm = csp_prio_t_CSP_PRIO_NORM as u8,
+    Low = csp_prio_t_CSP_PRIO_LOW as u8
+}
+pub type NodeId = u16;
+
 impl Connection {
-    pub fn connect(prio: csp_prio_t, dst: u16, dst_port: u8, timeout: u32, options: &[ConnectionOption]) -> CSPResult<Connection> {
+    pub fn connect(prio: ConnectionPriority, dst: NodeId, dst_port: u8, timeout: u32, options: &[ConnectionOption]) -> CSPResult<Connection> {
         unsafe {
             let opts = options
                 .iter()

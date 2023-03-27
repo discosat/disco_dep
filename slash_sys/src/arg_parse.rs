@@ -4,8 +4,8 @@ use std::marker::PhantomData;
 use std::ptr::null_mut;
 use std::slice::from_raw_parts;
 
-use crate::slash_sys::{optparse_add_string, optparse_parse, slash, optparse_del, optparse_add_double, optparse_add_int};
-use crate::{slash_sys::{optparse, optparse_new, optparse_add_help, optparse_add_unsigned}, SlashResult, SlashError};
+use crate::slash_sys::{optparse_add_string, optparse_parse, optparse_del, optparse_add_double, optparse_add_int, optparse, optparse_new, optparse_add_help, optparse_add_unsigned};
+use crate::{SlashResult, SlashError, Slash};
 
 pub struct OptionParser<'a> {
     parser: *mut optparse, 
@@ -139,7 +139,7 @@ impl<'a> OptionParser<'a> {
 
         Ok(self)
     }
-
+    
     pub fn add_string(mut self, short: char, long: &str, desc: &str, value: &'a mut String, help: &str) -> SlashResult<Self> 
     where
         Self: 'a
@@ -182,7 +182,7 @@ impl<'a> OptionParser<'a> {
         self
     }
 
-    pub fn parse(mut self, slash: &slash) -> SlashResult<()> {
+    pub fn parse(mut self, slash: &Slash) -> SlashResult<()> {
 
         extern "C" {
             /// Provided by libc or compiler_builtins.
@@ -192,8 +192,8 @@ impl<'a> OptionParser<'a> {
         unsafe {
             let argi = optparse_parse(
                 self.parser, 
-                slash.argc - 1, 
-                slash.argv.offset(1) as *mut *const c_char
+                slash.inner().argc - 1, 
+                slash.inner().argv.offset(1) as *mut *const c_char
             );
 
             // Check if the parser failed
@@ -204,12 +204,12 @@ impl<'a> OptionParser<'a> {
             // Handle unnamed arguments
             let iter = self.unnamed_args.iter_mut().enumerate();
             for (i, unnamed) in iter {
-                if argi + i as i32 >= slash.argc {
+                if argi + i as i32 >= slash.inner().argc {
                     eprintln!("{}", unnamed.missing_error);
                     return Err(SlashError::ExitCode(crate::SlashExitCode::Einval));
                 }
 
-                let str_ptr = *slash.argv.offset(argi as isize + i as isize + 1);
+                let str_ptr = *slash.inner().argv.offset(argi as isize + i as isize + 1);
                 let len = strlen(str_ptr);
                 let chars = from_raw_parts(str_ptr, len);
 

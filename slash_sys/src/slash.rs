@@ -1,4 +1,21 @@
-use crate::slash_sys::slash_command;
+use crate::slash_sys::{slash_command, slash};
+use crate::{SlashError, SlashResult, SlashExitCode};
+
+pub struct Slash<'a>(&'a slash);
+
+impl<'a> Slash<'a> {
+    pub unsafe fn from_raw(slash: *mut slash) -> SlashResult<Slash<'a>> {
+        if let Some(slash_ref) = slash.as_ref() {
+            Ok(Slash(slash_ref))
+        } else {
+            Err(SlashError::ExitCode(SlashExitCode::Exit))
+        }
+    }
+
+    pub(crate) const fn inner(&self) -> &slash {
+        self.0
+    }
+}
 
 unsafe impl Sync for slash_command {}
 
@@ -11,17 +28,20 @@ macro_rules! register_slash_command {
     (_create_extern_command_wrapper $name:ident) => {
         $crate::paste::paste!{
             #[no_mangle]
-            pub unsafe extern "C" fn [<extern_$name>] (slash: *mut slash) -> std::os::raw::c_int {
-                if let Some(slash_ref) = slash.as_ref() {
-                    let aa = $name(slash_ref);
-                    let res: Result<_, $crate::SlashExitCode> = aa.map_err::<$crate::SlashExitCode, _>(From::from);
-                    if let Err(code) = res {
-                        code.code()
-                    } else {
-                        $crate::slash_sys::SLASH_SUCCESS as std::os::raw::c_int
+            pub unsafe extern "C" fn [<extern_$name>] (slash: *mut $crate::slash_sys::slash) -> std::os::raw::c_int {
+                let slash = match $crate::Slash::from_raw(slash) {
+                    Ok(slash) => slash,
+                    Err(e) => {
+                        return $crate::SlashExitCode::from(e).code();
                     }
+                };
+
+                let res: Result<_, $crate::SlashExitCode> = $name(&slash).map_err::<$crate::SlashExitCode, _>(From::from);
+                
+                if let Err(code) = res {
+                    code.code()
                 } else {
-                    $crate::SlashExitCode::Exit.code()
+                    $crate::slash_sys::SLASH_SUCCESS as std::os::raw::c_int
                 }
             }
         }

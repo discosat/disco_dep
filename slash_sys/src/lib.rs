@@ -14,3 +14,16 @@ pub use slash_error::*;
 pub use arg_parse::*;
 pub use slash_exit_code::*;
 pub use slash::*;
+use slash_sys::{slash_dfl_node, slash_dfl_timeout};
+
+pub fn default_node() -> u16 {
+    unsafe {
+        slash_dfl_node as u16
+    }
+}
+
+pub fn default_timout() -> u32 {
+    unsafe {
+        slash_dfl_timeout
+    }
+}

@@ -21,5 +21,5 @@ pub use malloced_slice::*;
 pub use malloced::*;
 pub use socket::Socket;
 pub use packet::Packet;
-pub use connection::{Connection, ConnectionOption};
-pub use csp_error::{CSPError, CSPResult};
+pub use connection::*;
+pub use csp_error::*;
