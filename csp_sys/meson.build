@@ -27,3 +27,21 @@ csp_sys_lib = custom_target(
 csp_sys_dep = declare_dependency(
 	sources: [csp_sys_lib]
 )
+
+cargo = find_program('cargo', required: true)
+cargo_options = ['--manifest-path', meson.project_source_root() / 'csp_sys' / 'Cargo.toml']
+
+if get_option('buildtype') == 'release'
+	cargo_options += [ '--release' ]
+	message('Building in release mode')
+else
+	message('Building in debug mode')
+endif
+test(
+	'csp_sys', 
+	cargo, 
+	args: ['test', '--color=always', cargo_options, '--', '--nocapture'],
+	verbose: true,
+	timeout: 9999,
+	protocol: 'rust'
+)

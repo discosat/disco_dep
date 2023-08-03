@@ -14,7 +14,7 @@ pub use slash_error::*;
 pub use arg_parse::*;
 pub use slash_exit_code::*;
 pub use slash::*;
-use slash_sys::{slash_dfl_node, slash_dfl_timeout};
+pub use crate::slash_sys::{slash_dfl_node, slash_dfl_timeout};
 
 pub fn default_node() -> u16 {
     unsafe {

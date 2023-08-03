@@ -34,7 +34,7 @@ impl Connection {
                 .iter()
                 .fold(0, |f, opt| f | *opt as u32);
 
-            let conn = csp_connect(prio as u8, dst, dst_port, timeout, opts);
+            let conn = csp_connect(csp_prio_t_CSP_PRIO_HIGH as u8, dst, dst_port, timeout, opts);
 
             if conn.is_null() {
                 return Err(CSPError::ConnectionFailed)
@@ -46,7 +46,7 @@ impl Connection {
 
     pub fn read<T>(&mut self, timeout: u32) -> CSPResult<Packet<T>> 
     where
-        T: Sized + Send
+        T: Sized + Copy
     {
         unsafe {
             let packet = csp_read(self.0, timeout);
@@ -61,7 +61,7 @@ impl Connection {
 
     pub fn send<T>(&mut self, payload: &T) -> CSPResult<()>
     where
-        T: Sized + Send
+        T: Sized + Copy
     {
         unsafe {
             let packet = Packet::new(payload)?;
@@ -73,7 +73,7 @@ impl Connection {
 
     pub fn send_sfp<T>(&mut self, content: &T, mtu: u32, timout: u32) -> CSPResult<()> 
     where
-        T: Sized + Send
+        T: Sized + Copy
     {
         unsafe {
             let res = csp_sfp_send(

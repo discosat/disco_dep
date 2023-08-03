@@ -204,7 +204,7 @@ impl<'a> OptionParser<'a> {
             // Handle unnamed arguments
             let iter = self.unnamed_args.iter_mut().enumerate();
             for (i, unnamed) in iter {
-                if argi + i as i32 >= slash.inner().argc {
+                if argi + i as i32 + 1 >= slash.inner().argc {
                     eprintln!("{}", unnamed.missing_error);
                     return Err(SlashError::ExitCode(crate::SlashExitCode::Einval));
                 }

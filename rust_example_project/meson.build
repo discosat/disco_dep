@@ -53,6 +53,6 @@ test(
 	cargo, 
 	args: ['test', '--color=always', cargo_options, '--', '--nocapture'],
 	verbose: true,
-	timeout: 99999,
+	timeout: 9999,
 	protocol: 'rust'
 )
